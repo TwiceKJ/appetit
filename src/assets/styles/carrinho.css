@@ -9,6 +9,10 @@
 .carrinho-gatilho { transition: color 300ms ease-out, transform 300ms ease-out; }
 .carrinho-gatilho:hover { color: #fff; transform: translateY(-4px); }
 @media (prefers-reduced-motion: reduce) { .carrinho-gatilho { transition: none; } }
+/* Pequeno "pulo" quando o contador aparece ou muda de número. */
+.carrinho-contador { animation: contador-surge 250ms ease-out; }
+@keyframes contador-surge { 0% { transform: scale(.4); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .carrinho-contador { animation: none; } }
 .carrinho-contador { display: grid; place-items: center; min-width: 28px; height: 28px; padding-inline: 6px; border-radius: 50%; background: var(--color-terracota); color: white; font-family: var(--font-sans); font-size: .85rem; }
 /* absolute mantém o painel ligado ao botão, sem deslocar o catálogo. */
 .carrinho-painel { position: absolute; z-index: 60; top: calc(100% + 20px); right: 0; display: flex; flex-direction: column; width: 440px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 130px); border: 1px solid #e8ded4; border-radius: 14px; background: #fffdfa; color: #3f3027; box-shadow: 0 12px 36px rgb(63 48 39 / 18%); font-family: var(--font-sans); }
