@@ -89,7 +89,7 @@ function CarrinhoPopover({ pratos, aberto, onAbrir, onFechar, onAlterarQuantidad
               <Trash2 aria-hidden="true" /> Limpar carrinho
             </button>
             <p>Entrega calculada na próxima etapa.</p>
-            <button className="carrinho-finalizar" type="button" disabled={quantidadeTotal === 0} onClick={() => { onFechar(); navigate("/pedido"); }}>Finalizar pedido <ArrowRight aria-hidden="true" /></button>
+            <button className="carrinho-finalizar" type="button" onClick={() => { onFechar(); navigate("/pedido"); }}>Finalizar pedido <ArrowRight aria-hidden="true" /></button>
             <button className="carrinho-continuar" type="button" onClick={fecharComFoco}>Continuar escolhendo</button>
           </div>
         </section>
