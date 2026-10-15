@@ -6,6 +6,7 @@ import CarrinhoPopover from './CarrinhoPopover'
 const links = [
   { texto: 'Início', caminho: '/', end: true },
   { texto: 'Pratos', caminho: '/pratos' },
+  { texto: 'Meus pedidos', caminho: '/pedidos' },
 ]
 
 const estiloLink = ({ isActive }) =>

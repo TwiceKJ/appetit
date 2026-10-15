@@ -7,6 +7,7 @@ import Pratos from "./pages/Pratos";
 import CarregamentoPedido from "./components/CarregamentoPedido";
 
 // Os detalhes são carregados quando a pessoa chega a essa etapa.
+const MeusPedidos = lazy(() => import("./pages/MeusPedidos"));
 const DetalhesPedido = lazy(() => import("./pages/DetalhesPedido"));
 import { lerPratosPedidoSalvos, salvarPratosPedido } from "./utils/pratosPedidoStorage";
 
@@ -23,7 +24,7 @@ function App() {
       const existente = atuais.find((item) => item.id === prato.id);
       if (!existente) return variacao > 0 ? [...atuais, { ...prato, quantidade: variacao }] : atuais;
       return atuais.map((item) => item.id === prato.id
-        ? { ...item, quantidade: item.quantidade + variacao } : item,
+        ? { ...item, ...prato, quantidade: item.quantidade + variacao } : item,
       ).filter((item) => item.quantidade > 0);
     });
   }
@@ -42,6 +43,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/pedido" element={<Pedido pratosPedido={pratosPedido} setPratosPedido={setPratosPedido} />} />
+        <Route path="/pedidos" element={<Suspense fallback={<CarregamentoPedido />}><MeusPedidos /></Suspense>} />
         <Route path="/pedido/:pedidoId" element={<Suspense fallback={<CarregamentoPedido />}><DetalhesPedido /></Suspense>} />
         <Route path="/pratos" element={<Pratos pratosPedido={pratosPedido} onAlterarQuantidade={alterarQuantidade} />} />
       </Routes>

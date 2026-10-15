@@ -144,7 +144,7 @@ A API usa `http://localhost:8080` por padrão. O SQLite grava em `appetit.db`; o
 
 A taxa de entrega é configurada por `appetit.taxa-entrega-centavos` em `application.properties`.
 
-Se o frontend e o backend forem executados em origens diferentes, será necessário configurar um proxy ou uma política CORS antes de fazer chamadas pelo navegador.
+O frontend usa `/api` e o proxy do Vite encaminha as chamadas para `http://localhost:8080` no desenvolvimento e no preview. Em produção, configure esse encaminhamento no host ou autorize a origem do frontend no CORS do backend se usar uma URL separada.
 
 ## Testes
 

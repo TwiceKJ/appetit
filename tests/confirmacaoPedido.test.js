@@ -35,19 +35,12 @@ test("pedido sem quantidades positivas tem lista vazia", () => {
   assert.deepEqual(montarPedido(dados, [{ id: 1, quantidade: 0 }]).itens, []);
 });
 
-test("simulação padrão devolve referência explícita e não usa rede", async () => {
-  const enviar = criarServicoPedidos({ fetchImpl: () => assert.fail("Não deve usar rede") });
-  const resposta = await enviar(pedido);
-  assert.equal(resposta.simulado, true);
-  assert.match(resposta.id, /^SIM-/);
-});
-
-test("transporte simulado pode ser substituído para testes", async () => {
-  const enviar = criarServicoPedidos({ envioSimulado: async (recebido) => {
-    assert.deepEqual(recebido, pedido);
-    return { id: "SIM-TESTE", simulado: true };
+test("sem URL configurada usa a API local real", async () => {
+  const enviar = criarServicoPedidos({ url: "", fetchImpl: async (url) => {
+    assert.equal(url, "/api/pedidos");
+    return { ok: true, json: async () => ({ id: "pedido-real" }) };
   } });
-  assert.deepEqual(await enviar(pedido), { id: "SIM-TESTE", simulado: true });
+  assert.deepEqual(await enviar(pedido), { id: "pedido-real", simulado: false });
 });
 
 test("API recebe POST JSON e resposta é normalizada", async () => {

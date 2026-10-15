@@ -12,7 +12,7 @@ import "../assets/styles/finalizacao.css";
 import { validarPedido } from "../utils/validarPedido";
 import { montarPedido } from "../utils/montarPedido";
 import { enviarPedido } from "../services/enviarPedido";
-import { criarDetalhesPedido, salvarDetalhesPedido } from "../utils/detalhesPedidoStorage";
+import { registrarPedido } from "../utils/historicoPedidos";
 import CarregamentoPedido from "../components/CarregamentoPedido";
 
 function moeda(valor) {
@@ -31,7 +31,6 @@ function Pedido({ pratosPedido, setPratosPedido }) {
   const [erros, setErros] = useState({});
   const [tentouConfirmar, setTentouConfirmar] = useState(false);
   const [statusEnvio, setStatusEnvio] = useState("ocioso");
-  const [confirmacao, setConfirmacao] = useState(null);
   const formularioRef = useRef(null);
   const envioEmAndamento = useRef(false);
   const toastTimerRef = useRef(null);
@@ -41,7 +40,7 @@ function Pedido({ pratosPedido, setPratosPedido }) {
   const textoConfirmar = statusEnvio === "enviando"
     ? "Enviando pedido…"
     : statusEnvio === "sucesso"
-      ? (confirmacao?.simulado ? "Simulação concluída" : "Pedido confirmado")
+      ? "Pedido confirmado"
       : "Confirmar pedido";
   // Valores derivados do pedido: não precisam de outro estado do React.
   const { quantidadeTotal, subtotal, taxaEntrega, total } = calcularResumoPedido(
@@ -166,23 +165,19 @@ function Pedido({ pratosPedido, setPratosPedido }) {
 
     try {
       const resposta = await enviarPedido(pedido);
-      const detalhes = criarDetalhesPedido(pedido, pratosPedido, resposta, { quantidadeTotal, subtotal, taxaEntrega, total });
-      salvarDetalhesPedido(detalhes);
-      if (!paginaAtivaRef.current) return;
-      setConfirmacao(resposta);
-      setStatusEnvio("sucesso");
-      setMensagemValidacao("");
-      mostrarToast(resposta.simulado
-        ? "Abrindo os detalhes. Nenhum pedido foi enviado ao bistrô."
-        : "Seu pedido foi enviado. Abrindo os detalhes.", "sucesso");
+      registrarPedido(resposta.id);
       // Remove apenas as unidades enviadas, preservando itens adicionados durante o envio.
       setPratosPedido((atuais) => atuais.map((item) => ({
         ...item,
         quantidade: item.quantidade - (pratosPedido.find((enviado) => enviado.id === item.id)?.quantidade ?? 0),
       })).filter((item) => item.quantidade > 0));
+      if (!paginaAtivaRef.current) return;
+      setStatusEnvio("sucesso");
+      setMensagemValidacao("");
+      mostrarToast("Seu pedido foi enviado. Abrindo os detalhes.", "sucesso");
       // Uma transição curta dá tempo de ler o sucesso antes da próxima tela.
       transicaoTimerRef.current = window.setTimeout(() => {
-        navigate(`/pedido/${encodeURIComponent(detalhes.id)}`, { replace: true, state: { pedido: detalhes } });
+        navigate(`/pedido/${encodeURIComponent(resposta.id)}`, { replace: true });
       }, 1400);
     } catch (erro) {
       if (!paginaAtivaRef.current) return;
@@ -203,7 +198,7 @@ function Pedido({ pratosPedido, setPratosPedido }) {
         {toastTipo === "sucesso" ? <CircleCheck className="pedido-toast__icone" aria-hidden="true" /> : <CircleAlert className="pedido-toast__icone" aria-hidden="true" />}
         <div className="pedido-toast__texto">
           <strong>{toastTipo === "sucesso"
-            ? (confirmacao?.simulado ? "Simulação concluída" : "Pedido confirmado")
+            ? "Pedido confirmado"
             : toastTipo === "erro" ? "Não foi possível enviar"
             : Object.keys(erros).length > 0
               ? `Revise ${Object.keys(erros).length} ${Object.keys(erros).length === 1 ? "campo" : "campos"}`

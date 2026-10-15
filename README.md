@@ -18,7 +18,8 @@ A identidade visual usa detalhes de bistrô em vez de símbolos óbvios: o toldo
 | --- | --- | --- |
 | **Home** | Hero com janela francesa, carrossel "Pratos da casa" com pratos da API, seção "Nossa história" e rodapé | ✅ Pronta |
 | **Pratos** | Cardápio completo, busca, filtro por categoria e modal com detalhes do prato | 🚧 Em desenvolvimento |
-| **Pedidos** | Itens escolhidos e formulário de pedido com validação | 🚧 Em desenvolvimento |
+| **Pedidos** | Checkout com validação e envio ao backend | ✅ Integrado |
+| **Meus pedidos** | Histórico neste navegador e acesso ao acompanhamento | ✅ Integrado |
 
 ## Tecnologias
 
@@ -40,7 +41,7 @@ A identidade visual usa detalhes de bistrô em vez de símbolos óbvios: o toldo
 | 2 componentes reutilizáveis | `CardPrato` (Home e Pratos) e componentes de interface compartilhados |
 | 3 interações | Menu mobile, pausa do carrossel, busca e filtro de pratos, modal de detalhes |
 | Formulário com 5+ campos validados | Formulário da página Pedidos |
-| 3 operações HTTP | `GET` real na TheMealDB; `POST` (enviar pedido) e `DELETE` (remover item) simulados |
+| 3 operações HTTP | `GET` de pratos e pedidos, `POST` de pedidos e `PATCH` de status na API Spring Boot |
 | WCAG AA e Lighthouse acima de 90 | Home com **100** de acessibilidade no Lighthouse, no desktop e no mobile |
 | Versionamento em grupo | Branches, commits semânticos e Pull Requests no GitHub |
 | Publicação | Vercel |
@@ -110,17 +111,31 @@ appetit/
     └── components/      # peças reutilizáveis (Header, Hero, CardPrato...)
 ```
 
-## API
+## API e acompanhamento de pedidos
 
-Os pratos vêm da [TheMealDB](https://www.themealdb.com/api.php), uma API pública e gratuita:
+O frontend usa `/api` por padrão e não simula confirmações. O backend Spring Boot mantém o cardápio e os pedidos no SQLite. As imagens dos pratos são hospedadas pela TheMealDB; textos editoriais e avaliações da home continuam sendo conteúdo demonstrativo do restaurante fictício.
 
-| Endpoint | Uso |
-| --- | --- |
-| `filter.php?a=France` | Lista dos pratos franceses (28 pratos) |
-| `lookup.php?i={id}` | Detalhes e ingredientes de um prato |
-| `filter.php?c={categoria}` | Pratos de uma categoria |
+Inicie o backend em outro terminal, com o JDK 25 selecionado:
 
-A API não tem avaliações nem preços. Esses dados, e o envio e a remoção de itens do pedido, são simulados no próprio código.
+```bash
+cd backend
+export JAVA_HOME=$(/usr/libexec/java_home -v 25)
+export PATH="$JAVA_HOME/bin:$PATH"
+./mvnw spring-boot:run
+```
+
+Na raiz, rode `npm run dev`. O proxy do Vite encaminha `/api` para `http://localhost:8080`, inclusive no `npm run preview`. Reinicie o Vite depois de alterar a configuração. Em produção, o host deve encaminhar `/api` ao backend; alternativamente, configure `VITE_API_URL` e autorize essa origem no CORS do servidor. As variáveis `VITE_` são públicas e não devem conter senhas.
+
+| Método | Rota | Uso |
+| --- | --- | --- |
+| GET | `/api/pratos` | Cardápio com preço e disponibilidade do banco |
+| POST | `/api/pedidos` | Confirmação com ID gerado pelo servidor |
+| GET | `/api/pedidos/{id}` | Dados, valores e status salvos |
+| PATCH | `/api/pedidos/{id}/status` | Atualização do andamento no backend |
+
+Após confirmar, acesse **Meus pedidos** no menu para reabrir o acompanhamento. O navegador guarda somente os IDs em `localStorage`; cada abertura consulta os detalhes no backend. O acompanhamento consulta novamente a cada 5 segundos até concluir ou cancelar. Em caso de falha, informa que os dados exibidos são da última consulta e permite tentar novamente.
+
+Esse histórico pertence ao navegador atual, sem sincronização entre dispositivos. A URL `/pedido/{id}` também permite abrir um pedido existente diretamente. Pedidos antigos `SIM-...` não existem no banco. Referências reais da antiga sessão são recuperadas quando disponíveis. O status só muda quando atualizado no backend: a interface não inventa progresso nem previsão de entrega.
 
 ## Como contribuir (fluxo do grupo)
 
